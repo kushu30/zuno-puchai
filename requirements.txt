@@ -2,3 +2,4 @@ fastmcp
 mcp
 pydantic
 python-dotenv
+uvicorn
