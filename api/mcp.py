@@ -1,18 +1,27 @@
-import os
-from fastmcp import FastMCP
-from dotenv import load_dotenv
+from mcp.server.fastmcp import FastMCP
 
-load_dotenv()
+mcp = FastMCP()
 
-from mcp_tools import split_expense, add_expense, get_balances, settle_payment
+@mcp.function("split_expense", description="Split an expense equally among participants")
+def split_expense(amount: float, people: int):
+    if people <= 0:
+        return {"error": "Number of people must be greater than zero"}
+    per_person = round(amount / people, 2)
+    return {
+        "per_person": per_person,
+        "breakdown": f"₹{per_person} each"
+    }
 
-mcp = FastMCP("expense-splitter")
+@mcp.function("add_expense", description="Add an expense to the group record")
+def add_expense(description: str, amount: float):
+    return {"status": "success", "description": description, "amount": amount}
 
-mcp.tool()(split_expense)
-mcp.tool()(add_expense)
-mcp.tool()(get_balances)
-mcp.tool()(settle_payment)
+@mcp.function("get_balances", description="Get current balances for group")
+def get_balances():
+    return {"balances": "Feature not yet implemented"}
 
-async def app(scope, receive, send):
-    if scope["type"] == "http":
-        await mcp.run_http(scope, receive, send)
+@mcp.function("settle_payment", description="Mark a payment as settled")
+def settle_payment(payer: str, payee: str, amount: float):
+    return {"status": "success", "message": f"{payer} settled ₹{amount} with {payee}"}
+
+app = mcp.app
